@@ -1,0 +1,54 @@
+{
+    "name": "i350/laravel-fields",
+    "description": "Fields definition for laravel model ",
+    "keywords": [
+        "i350",
+        "fields"
+    ],
+    "homepage": "https://github.com/i350/fields",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Islam Abdelfattah",
+            "email": "IslamM.Abdelfattah@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "illuminate/support": "^8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.0",
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "i350\\Fields\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "i350\\Fields\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "i350\\Fields\\FieldsServiceProvider"
+            ],
+            "aliases": {
+                "Fields": "i350\\Fields\\FieldsFacade"
+            }
+        }
+    }
+}
