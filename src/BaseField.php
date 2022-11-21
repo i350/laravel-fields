@@ -7,7 +7,7 @@ const V_UNSET = PHP_INT_MIN;
 
 abstract class BaseField implements IField, JsonSerializable
 {
-    private ?IField $previousField;
+    private ?IField $previousField = null;
 
     public function __construct(
         protected string $name,
@@ -35,8 +35,6 @@ abstract class BaseField implements IField, JsonSerializable
         if($this->default === null) {
             $this->nullable = true;
         }
-
-        $this->previousField = new static(name: $this->getName());
     }
 
     /**
@@ -142,6 +140,14 @@ abstract class BaseField implements IField, JsonSerializable
     public function getForeignKey(): array
     {
         return $this->foreign_key;
+    }
+
+    /**
+     * @return IField|null
+     */
+    public function getPreviousField(): ?IField
+    {
+        return $this->previousField ?: new static(name: $this->getName());
     }
 
     /**
@@ -275,6 +281,10 @@ abstract class BaseField implements IField, JsonSerializable
         return $this;
     }
 
+    public function setPreviousField(IField $field) {
+        $this->previousField = $field;
+    }
+
 
     protected static function getMigrationAction($param, $change): ?\Closure
     {
@@ -344,13 +354,13 @@ abstract class BaseField implements IField, JsonSerializable
 
         // Handle foreign key
         if($this->isDirty('foreign_key')) {
-            if($this->previousField->getForeignKey()) {
-                $extraCommands[] = "\$table->dropForeign('{$this->previousField->getName()}');";
+            if($this->getPreviousField()->getForeignKey()) {
+                $extraCommands[] = "\$table->dropForeign('{$this->getPreviousField()->getName()}');";
             }
             if($this->getForeignKey()) {
                 $parts = ['$table', "foreign('{$this->getName()}')"];
                 foreach($this->getForeignKey() as $method => $arg) {
-                    $parts[] = "$method($arg)";
+                    $parts[] = "$method('$arg')";
                 }
                 $extraCommands[] = implode("->", $parts) . ';';
             }
@@ -360,9 +370,9 @@ abstract class BaseField implements IField, JsonSerializable
 
     public function toDownMigration(): array
     {
-        if ($this->previousField)    {
-            $this->previousField->setPreviousField($this);
-            return $this->previousField->toMigration(true);
+        if ($this->previousField)   {
+            $this->getPreviousField()->setPreviousField($this);
+            return $this->getPreviousField()->toMigration(true);
         }
         return ["\$table->dropColumn('{$this->getName()}');"];
     }
@@ -394,13 +404,9 @@ abstract class BaseField implements IField, JsonSerializable
         return $array;
     }
 
-    public function setPreviousField(IField $field) {
-        $this->previousField = $field;
-    }
-
-    public static function getDirtyParams(IField $originalField,IField $newField): array {
-        $originalParams = $originalField->jsonSerialize();
-        $newParams = $newField->jsonSerialize();
+    public function getDirtyParams(): array {
+        $originalParams = array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $this->getPreviousField()->jsonSerialize());
+        $newParams = array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $this->jsonSerialize());
         return array_keys(array_diff($originalParams, $newParams) + array_diff($newParams, $originalParams));
     }
 
@@ -409,7 +415,7 @@ abstract class BaseField implements IField, JsonSerializable
     }
 
     public function compareParams(): array {
-        $dirtyParams = $this::getDirtyParams($this->previousField, $this);
+        $dirtyParams = $this->getDirtyParams();
 
         $result = [];
         foreach($dirtyParams as $parameter) {
@@ -419,7 +425,7 @@ abstract class BaseField implements IField, JsonSerializable
     }
 
     public function compareParam(string $parameter): int {
-        $previousValue = $this->previousField->{$parameter};
+        $previousValue = $this->getPreviousField()->{$parameter};
         $currentValue = $this->{$parameter};
 
         return $this->compare($currentValue, $previousValue);
