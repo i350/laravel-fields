@@ -4,6 +4,7 @@ namespace i350\Fields\Database\Migrations;
 
 use App\Contracts\IModel;
 use Closure;
+use i350\Fields\IField;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -201,8 +202,17 @@ class MigrationCreator
     protected function getModelUpMigrations($model, $previousFields = [])
     {
         $migrations = [];
-        /** @var \i350\Fields\IField $field */
+        /** @var IField $field */
         foreach($model::getFields() as $field) {
+            $previousFieldResult = array_filter(
+                $model::getFields(),
+                fn(IField $prevField) => $prevField->getName()===$field->getName()
+            );
+
+            if(!empty($previousFieldResult)) {
+                $previousField = $previousFieldResult[array_key_first($previousFieldResult)];
+                $field = $field->setPreviousField(clone $previousField);
+            }
             $migrations = array_merge($migrations, $field->toMigration());
         }
         return $migrations;

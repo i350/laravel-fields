@@ -281,8 +281,9 @@ abstract class BaseField implements IField, JsonSerializable
         return $this;
     }
 
-    public function setPreviousField(IField $field) {
+    public function setPreviousField(IField $field): BaseField {
         $this->previousField = $field;
+        return $this;
     }
 
 
@@ -309,12 +310,15 @@ abstract class BaseField implements IField, JsonSerializable
         $paramActions = $map[$param] ?? [];
         return $paramActions[$change] ?? null;
     }
-    public function toMigration($isChange = false): array
+    public function toMigration($forceChange = false): array
     {
         $commands = [];
         $extraCommands = [];
 
+        if (empty($this->getDirtyParams())) return [];
+
         $lengthArg = $this->getMaxLength() != V_UNSET ? ", ['length' => {$this->getMaxLength()}]" : '';
+        # TODO: Create command object instead of string
         $commands['type'] = "addColumn('{$this->getType()}', '{$this->getName()}'{$lengthArg})";
 
         $comparison = $this->compareParams();
@@ -365,7 +369,7 @@ abstract class BaseField implements IField, JsonSerializable
                 $extraCommands[] = implode("->", $parts) . ';';
             }
         }
-        return array_merge(['$table->' . implode("->", $commands) . ($isChange?'->change()':'') .  ';'], $extraCommands);
+        return array_merge(['$table->' . implode("->", $commands) . ($this->previousField||$forceChange?'->change()':'') .  ';'], $extraCommands);
     }
 
     public function toDownMigration(): array
@@ -374,7 +378,19 @@ abstract class BaseField implements IField, JsonSerializable
             $this->getPreviousField()->setPreviousField($this);
             return $this->getPreviousField()->toMigration(true);
         }
-        return ["\$table->dropColumn('{$this->getName()}');"];
+        $commands = [];
+        if ($this->getForeignKey()) {
+            $commands[] = "\$table->dropForeign('{$this->getName()}');";
+        }
+        if ($this->isPrimaryKey()) {
+            $commands[] = "\$table->dropPrimary('{$this->getName()}');";
+        }
+        if ($this->isUnique()) {
+            $commands[] = "\$table->dropUnique('{$this->getName()}');";
+        }
+        // TODO: $table->dropIndex()
+        $commands[] = "\$table->dropColumn('{$this->getName()}');";
+        return $commands;
     }
 
     public function jsonSerialize(): array
@@ -383,6 +399,7 @@ abstract class BaseField implements IField, JsonSerializable
         unset($params['validation_rules']);
         unset($params['translatable']);
         unset($params['required']);
+        unset($params['previousField']);
         return array_filter($params, fn($value) => $value !== V_UNSET);
     }
 

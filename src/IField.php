@@ -27,6 +27,8 @@ Interface IField
 
     public function getValidationRules(): array;
 
+    public function getPreviousField(): ?IField;
+
     public function setName(string $name): BaseField;
 
     public function setType(string $type): BaseField;
@@ -48,6 +50,8 @@ Interface IField
     public function setTranslatable(bool $translatable): BaseField;
 
     public function setValidationRules(array $validation_rules): BaseField;
+
+    public function setPreviousField(IField $field): BaseField;
 
     public function toMigration(): array;
 
