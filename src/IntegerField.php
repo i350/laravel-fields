@@ -2,7 +2,6 @@
 
 namespace i350\Fields;
 
-use Illuminate\Database\Schema\ForeignKeyDefinition;
 
 class IntegerField extends BaseField
 {

@@ -16,7 +16,7 @@ class BooleanField extends BaseField
     )
     {
         $args = get_defined_vars();
-        $args['type'] = 'bool';
+        $args['type'] = 'boolean';
         parent::__construct(...$args);
     }
 }

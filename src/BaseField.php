@@ -7,7 +7,7 @@ const V_UNSET = PHP_INT_MIN;
 
 abstract class BaseField implements IField, JsonSerializable
 {
-    private ?IField $previousField = null;
+    protected ?IField $previousField = null;
 
     public function __construct(
         protected string $name,
@@ -318,8 +318,14 @@ abstract class BaseField implements IField, JsonSerializable
         if (empty($this->getDirtyParams())) return [];
 
         $lengthArg = $this->getMaxLength() != V_UNSET ? ", ['length' => {$this->getMaxLength()}]" : '';
+
         # TODO: Create command object instead of string
-        $commands['type'] = "addColumn('{$this->getType()}', '{$this->getName()}'{$lengthArg})";
+        if($this->getType()==='foreign_key') {
+            /** @var ForeignKeyField $this */
+            $commands['type'] = "foreignIdFor(\\{$this->getModel()}::class)";
+        } else {
+            $commands['type'] = "addColumn('{$this->getType()}', '{$this->getName()}'{$lengthArg})";
+        }
 
         $comparison = $this->compareParams();
         foreach($comparison as $param => $change) {
@@ -422,8 +428,9 @@ abstract class BaseField implements IField, JsonSerializable
     }
 
     public function getDirtyParams(): array {
-        $originalParams = array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $this->getPreviousField()->jsonSerialize());
+        $originalParams = $this->previousField?array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $this->getPreviousField()->jsonSerialize()):[];
         $newParams = array_map(fn($v) => is_array($v) ? json_encode($v) : $v, $this->jsonSerialize());
+
         return array_keys(array_diff($originalParams, $newParams) + array_diff($newParams, $originalParams));
     }
 

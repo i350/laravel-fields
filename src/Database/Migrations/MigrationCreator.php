@@ -71,6 +71,7 @@ class MigrationCreator
         $this->files->ensureDirectoryExists(dirname($path));
 
         $upMigrations = $this->getModelUpMigrations($model);
+
         dd($upMigrations);
         $downMigrations = [];
 
@@ -205,7 +206,7 @@ class MigrationCreator
         /** @var IField $field */
         foreach($model::getFields() as $field) {
             $previousFieldResult = array_filter(
-                $model::getFields(),
+                $previousFields,
                 fn(IField $prevField) => $prevField->getName()===$field->getName()
             );
 
