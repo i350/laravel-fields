@@ -24,6 +24,7 @@ abstract class BaseField implements IField, JsonSerializable
         protected bool $fillable = false,
         protected ?string $virtual_as = null,
         protected ?string $stored_as = null,
+        protected ?string $charset = null,
         protected bool $translatable = false,
         protected array $allowed = [],
         protected array $validation_rules = [],
@@ -31,8 +32,8 @@ abstract class BaseField implements IField, JsonSerializable
     )
     {
         if ($this->primary_key) {
-            $this->unique = V_UNSET;
-            $this->nullable = V_UNSET;
+            $this->unique = false;
+            $this->nullable = false;
             $this->required = true;
         }
 
@@ -111,7 +112,7 @@ abstract class BaseField implements IField, JsonSerializable
     /**
      * @return int|float|string|null
      */
-    public function getDefault(): int|float|string|null
+    public function getDefault(): int|float|string|\Illuminate\Database\Query\Expression|null
     {
         return $this->default;
     }
@@ -130,6 +131,14 @@ abstract class BaseField implements IField, JsonSerializable
     public function isFillable(): bool
     {
         return $this->fillable;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCharset(): ?string
+    {
+        return $this->charset;
     }
 
     /**
@@ -342,6 +351,12 @@ abstract class BaseField implements IField, JsonSerializable
             $commands['type'] = "{$this->getType()}('{$this->getName()}'{$lengthArg})";
         }
 
+        // Handle Charset
+        if($this->getCharset()) {
+            $commands['charset'] = "charset('{$this->getCharset()}')";
+        }
+
+        // Handle Boolean params
         $comparison = $this->compareParams();
         foreach($comparison as $param => $change) {
             $action = $this::getMigrationAction($param, $change);
@@ -372,6 +387,9 @@ abstract class BaseField implements IField, JsonSerializable
                     case 'float':
                     case 'bool':
                         $commands['default'] = "default({$this->getDefault()})";
+                        break;
+                    case 'Illuminate\Database\Query\Expression':
+                        $commands['default'] = "default(\DB::raw('{$this->getDefault()}'))";
                         break;
                 }
             }

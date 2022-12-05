@@ -19,7 +19,7 @@ Interface IField
 
     public function isNullable(): bool;
 
-    public function getDefault(): int|float|string|null;
+    public function getDefault(): int|float|string|\Illuminate\Database\Query\Expression|null;
 
     public function isRequired(): bool;
 

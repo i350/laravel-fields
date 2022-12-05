@@ -156,7 +156,7 @@ class MigrationCreator
 
         $stub = str_replace(
             '{{ upMigrations }}',
-            implode("\n\t\t\t", $upMigrations), $stub
+            implode("\n\t\t\t\t", $upMigrations), $stub
         );
 
         $stub = str_replace(
