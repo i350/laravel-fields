@@ -1,6 +1,7 @@
 <?php
 namespace i350\Fields;
 
+use Illuminate\Support\Str;
 use JsonSerializable;
 
 const V_UNSET = PHP_INT_MIN;
@@ -20,6 +21,9 @@ abstract class BaseField implements IField, JsonSerializable
         protected bool $nullable = false,
         protected $default = V_UNSET,
         protected bool $required = false,
+        protected bool $fillable = false,
+        protected ?string $virtual_as = null,
+        protected ?string $stored_as = null,
         protected bool $translatable = false,
         protected array $allowed = [],
         protected array $validation_rules = [],
@@ -27,13 +31,16 @@ abstract class BaseField implements IField, JsonSerializable
     )
     {
         if ($this->primary_key) {
-            $this->unique = true;
-            $this->nullable = false;
+            $this->unique = V_UNSET;
+            $this->nullable = V_UNSET;
             $this->required = true;
         }
 
         if($this->default === null) {
             $this->nullable = true;
+        }
+        elseif(($this->default === V_UNSET) && ($this->nullable === true) && ($this->required=false)) {
+            $this->default = null;
         }
     }
 
@@ -115,6 +122,14 @@ abstract class BaseField implements IField, JsonSerializable
     public function isRequired(): bool
     {
         return $this->required;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFillable(): bool
+    {
+        return $this->fillable;
     }
 
     /**
@@ -300,7 +315,7 @@ abstract class BaseField implements IField, JsonSerializable
                 '1' =>  fn(&$commands, &$extra) => $commands['unsigned']="unsigned()",
             ],
             'nullable'   =>  [
-                '1' =>  fn(&$commands, &$extra) => $commands['nullable']="nullable(true)",
+                '1' =>  fn(&$commands, &$extra) => $commands['nullable']="nullable()",
                 '-1' =>  fn(&$commands, &$extra) => $commands['nullable']="nullable(false)",
             ],
             'increment'   =>  [
@@ -317,14 +332,14 @@ abstract class BaseField implements IField, JsonSerializable
 
         if (empty($this->getDirtyParams())) return [];
 
-        $lengthArg = $this->getMaxLength() != V_UNSET ? ", ['length' => {$this->getMaxLength()}]" : '';
 
         # TODO: Create command object instead of string
         if($this->getType()==='foreign_key') {
             /** @var ForeignKeyField $this */
             $commands['type'] = "foreignIdFor(\\{$this->getModel()}::class)";
         } else {
-            $commands['type'] = "addColumn('{$this->getType()}', '{$this->getName()}'{$lengthArg})";
+            $lengthArg = $this->getMaxLength() != V_UNSET ? ", {$this->getMaxLength()}" : '';
+            $commands['type'] = "{$this->getType()}('{$this->getName()}'{$lengthArg})";
         }
 
         $comparison = $this->compareParams();
@@ -375,6 +390,14 @@ abstract class BaseField implements IField, JsonSerializable
                 $extraCommands[] = implode("->", $parts) . ';';
             }
         }
+
+        // Handle computed columns
+        foreach(['virtual_as', 'stored_as'] as $computedAction) {
+            if($this->isDirty($computedAction)) {
+                $commands[] = Str::studly($computedAction)."('{$this->$computedAction}')";
+            }
+        }
+
         return array_merge(['$table->' . implode("->", $commands) . ($this->previousField||$forceChange?'->change()':'') .  ';'], $extraCommands);
     }
 

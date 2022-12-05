@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class {{ class }} extends Migration
+return new class extends Migration
 {
     public static string $fields = '{{ fields }}';
 
@@ -15,9 +15,14 @@ class {{ class }} extends Migration
      */
     public function up()
     {
-        Schema::create('{{ table }}', function (Blueprint $table) {
-            {{ upMigrations }}
-        });
+        try {
+            Schema::create('{{ table }}', function (Blueprint $table) {
+                {{ upMigrations }}
+            });
+        } catch(\Illuminate\Database\QueryException $e) {
+            $this->down();
+            throw $e;
+        }
     }
 
     /**
@@ -29,4 +34,4 @@ class {{ class }} extends Migration
     {
         Schema::dropIfExists('{{ table }}');
     }
-}
+};

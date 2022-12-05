@@ -47,7 +47,7 @@
                 "i350\\Fields\\FieldsServiceProvider"
             ],
             "aliases": {
-                "Fields": "i350\\Fields\\FieldsFacade"
+                "Fields": "Fields"
             }
         }
     }

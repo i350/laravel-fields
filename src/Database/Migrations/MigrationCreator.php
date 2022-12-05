@@ -72,8 +72,7 @@ class MigrationCreator
 
         $upMigrations = $this->getModelUpMigrations($model);
 
-        dd($upMigrations);
-        $downMigrations = [];
+        $downMigrations = $this->getModelDownMigrations($model);
 
         $this->files->put(
             $path, $this->populateStub($model, $name, $stub, $table, $upMigrations, $downMigrations)
@@ -197,7 +196,7 @@ class MigrationCreator
     /**
      * Get up migrations of model.
      *
-     * @param  IModel  $model
+     * @param  IModel|string  $model
      * @return array
      */
     protected function getModelUpMigrations($model, $previousFields = [])
@@ -222,12 +221,17 @@ class MigrationCreator
     /**
      * Get down migrations of model.
      *
-     * @param  IModel  $model
+     * @param  IModel|string  $model
      * @return array
      */
     protected function getModelDownMigrations($model, $previousFields = [])
     {
-        return array_map(fn(\i350\Fields\IField $field) => $field->toDownMigration(), $model::getFields());
+        $migrations = [];
+        /** @var IField $field */
+        foreach($model::getFields() as $field) {
+            array_push($migrations, ...$field->toDownMigration());
+        }
+        return $migrations;
     }
 
     /**
