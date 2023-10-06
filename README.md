@@ -1,8 +1,8 @@
 # Model Fields
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/i350/fields.svg?style=flat-square)](https://packagist.org/packages/i350/fields)
-[![Total Downloads](https://img.shields.io/packagist/dt/i350/fields.svg?style=flat-square)](https://packagist.org/packages/i350/fields)
-![GitHub Actions](https://github.com/i350/fields/actions/workflows/main.yml/badge.svg)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/i350/laravel-fields.svg?style=flat-square)](https://packagist.org/packages/i350/laravel-fields)
+[![Total Downloads](https://img.shields.io/packagist/dt/i350/laravel-fields.svg?style=flat-square)](https://packagist.org/packages/i350/laravel-fields)
+![GitHub Actions](https://github.com/i350/laravel-fields/actions/workflows/main.yml/badge.svg)
 
 Easily define fields for your models, generate migrations for them and form-request rules.
 
@@ -11,7 +11,7 @@ Easily define fields for your models, generate migrations for them and form-requ
 You can install the package via composer:
 
 ```bash
-composer require i350/fields
+composer require i350/laravel-fields
 ```
 
 ## Usage
