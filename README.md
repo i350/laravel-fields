@@ -1,10 +1,10 @@
-# Very short description of the package
+# Model Fields
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/i350/fields.svg?style=flat-square)](https://packagist.org/packages/i350/fields)
 [![Total Downloads](https://img.shields.io/packagist/dt/i350/fields.svg?style=flat-square)](https://packagist.org/packages/i350/fields)
 ![GitHub Actions](https://github.com/i350/fields/actions/workflows/main.yml/badge.svg)
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+Easily define fields for your models, generate migrations for them and form-request rules.
 
 ## Installation
 
@@ -17,7 +17,7 @@ composer require i350/fields
 ## Usage
 
 ```php
-// Usage description here
+// TODO
 ```
 
 ### Testing
@@ -46,7 +46,3 @@ If you discover any security related issues, please email IslamM.Abdelfattah@gma
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## Laravel Package Boilerplate
-
-This package was generated using the [Laravel Package Boilerplate](https://laravelpackageboilerplate.com).
