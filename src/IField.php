@@ -53,10 +53,14 @@ Interface IField
 
     public function setPreviousField(IField $field): BaseField;
 
-    public function toMigration(): array;
+    public function toMigration(bool $forceChange = false): array;
 
     public function toDownMigration(): array;
 
     public function jsonSerialize(): array;
+
+    public function toValidation(bool $create = true, string $table = null): ?string;
+
+    public function toArray(bool $migration=false): array;
 
 }
