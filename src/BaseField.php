@@ -37,6 +37,10 @@ abstract class BaseField implements IField, JsonSerializable
             $this->required = true;
         }
 
+        if($this->increment) {
+            $this->primary_key = false;
+        }
+
         if($this->default === null) {
             $this->nullable = true;
         }
@@ -334,7 +338,7 @@ abstract class BaseField implements IField, JsonSerializable
         $paramActions = $map[$param] ?? [];
         return $paramActions[$change] ?? null;
     }
-    public function toMigration($forceChange = false): array
+    public function toMigration(bool $forceChange = false): array
     {
         $commands = [];
         $extraCommands = [];
@@ -412,7 +416,7 @@ abstract class BaseField implements IField, JsonSerializable
         // Handle computed columns
         foreach(['virtual_as', 'stored_as'] as $computedAction) {
             if($this->isDirty($computedAction)) {
-                $commands[] = Str::studly($computedAction)."('{$this->$computedAction}')";
+                $commands[] = Str::camel($computedAction)."('{$this->$computedAction}')";
             }
         }
 
@@ -451,12 +455,60 @@ abstract class BaseField implements IField, JsonSerializable
     }
 
 
-    public function toValidation()
+    public function toValidation(bool $create = true, string $table = null): ?string
     {
-
+        if (!$this->isFillable())    return null;
+        $rules = [];
+        if ($this->isRequired()) {
+            if ($create)    {
+                if($this->isTranslatable()) {
+                    if (config('fields.i18n.all_required')) {
+                        $rules[] = 'required';
+                    } else {
+                        $siblings = [];
+                        $nameParts = explode('_', $this->getName());
+                        $baseName = str_replace("_" . end($nameParts), '', $this->getName());
+                        foreach(config('fields.i18n.locals') as $locale) {
+                            $siblingName = "{$baseName}_$locale";
+                            if ($siblingName != $this->getName())   $siblings[] = $siblingName;
+                        }
+                        $rules[] = 'required_without:' . implode(',', $siblings);
+                    }
+                } else {
+                    $rules[] = 'required';
+                }
+            }
+        } else {
+            if ($this->isNullable())    $rules[] = 'nullable';
+        }
+        switch(static::class) {
+            case BooleanField::class:
+                $rules[] = 'boolean';
+                break;
+            case IntegerField::class:
+            case BigIntegerField::class:
+                $rules[] = 'numeric';
+                break;
+            case StringField::class:
+            case TextField::class:
+            case MediumTextField::class:
+            case LongTextField::class:
+                $rules[] = 'string';
+                break;
+        }
+        if ($this->isUnique() && $table) {
+            $rules[] = "unique:" . $table . ',' . $this->getName();
+        }
+        if ($this->getMaxLength() !== V_UNSET) {
+            $rules[] = 'max:' . $this->getMaxLength();
+        }
+        if ($fk = $this->getForeignKey()) {
+            $rules[] = 'exists:' . $fk['on'] . ',' . $fk['references'];
+        }
+        return implode("|", $rules);
     }
 
-    public function toArray($migration=false): array
+    public function toArray(bool $migration=false): array
     {
         $array = [];
         foreach (get_class_vars(static::class) as $k=>$v) {

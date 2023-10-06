@@ -3,6 +3,7 @@
 namespace i350\Fields;
 
 use i350\Fields\Console\MigrateMakeCommand;
+use i350\Fields\Console\ValidationRulesFillerCommand;
 use Illuminate\Support\ServiceProvider;
 
 class FieldsServiceProvider extends ServiceProvider
@@ -42,7 +43,8 @@ class FieldsServiceProvider extends ServiceProvider
 
             // Registering package commands.
              $this->commands([
-                 MigrateMakeCommand::class
+                 MigrateMakeCommand::class,
+                 ValidationRulesFillerCommand::class,
              ]);
         }
     }
