@@ -16,9 +16,7 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
-        "ext-soap": "*",
-        "ext-json": "*"
+        "php": "^7.4|^8.0"
     },
     "require-dev": {
         "orchestra/testbench": "^6.0",
