@@ -16,9 +16,9 @@ class Template
             increment: true,
         );
     }
-    public static function uuid($primaryKey = true):IField {
+    public static function uuid($primaryKey = true, $as='uuid'):IField {
         return new UuidField(
-            name: 'uuid',
+            name: $as,
             primary_key: $primaryKey,
         );
     }
