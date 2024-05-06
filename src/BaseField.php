@@ -393,7 +393,7 @@ abstract class BaseField implements IField, JsonSerializable
                         $commands['default'] = "default({$this->getDefault()})";
                         break;
                     case 'Illuminate\Database\Query\Expression':
-                        $commands['default'] = "default(\DB::raw('{$this->getDefault()}'))";
+                        $commands['default'] = "default(\DB::raw('{$this->getDefault()->getValue(new \Illuminate\Database\Query\Grammars\MySqlGrammar())}'))";
                         break;
                 }
             }
